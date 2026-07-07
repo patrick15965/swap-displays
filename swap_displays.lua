@@ -1,14 +1,17 @@
 -- BEGIN swap-displays
 -- Enforces a stable left-to-right layout and toggles the two externals.
--- Lid open:    [built-in] [external A] [external B]
--- Lid closed:              [external A] [external B]
--- Each invocation swaps A and B by declaring a new primary and re-placing.
+-- Built-in position is configurable per-invocation:
+--   "left":  [built-in] [external A] [external B]
+--   "right": [external A] [external B] [built-in]
+-- In clamshell mode the built-in is ignored either way.
 local function isBuiltIn(screen)
 	local name = screen:name() or ""
 	return name:find("Built%-in") ~= nil
 end
 
-function swapExternalDisplays()
+function swapExternalDisplays(builtInSide)
+	builtInSide = builtInSide or "left"
+
 	local screens = hs.screen.allScreens()
 	local builtIn, externals = nil, {}
 	for _, s in ipairs(screens) do
@@ -29,15 +32,17 @@ function swapExternalDisplays()
 	end)
 	local currentLeft, currentRight = externals[1], externals[2]
 
-	-- New order: built-in (if present), then swap of the two externals.
+	-- Swap the externals, then splice built-in onto the requested side.
 	local order = {}
-	if builtIn then
+	if builtIn and builtInSide == "left" then
 		table.insert(order, builtIn)
 	end
 	table.insert(order, currentRight)
 	table.insert(order, currentLeft)
+	if builtIn and builtInSide == "right" then
+		table.insert(order, builtIn)
+	end
 
-	-- Snapshot widths before any mutation.
 	local widths = {}
 	for i, s in ipairs(order) do
 		widths[i] = s:frame().w
@@ -65,6 +70,10 @@ function swapExternalDisplays()
 end
 
 hs.urlevent.bind("swapDisplays", function()
-	swapExternalDisplays()
+	swapExternalDisplays("left")
+end)
+
+hs.urlevent.bind("swapDisplaysBuiltInRight", function()
+	swapExternalDisplays("right")
 end)
 -- END swap-displays

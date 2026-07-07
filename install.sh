@@ -18,7 +18,25 @@ die()  { printf "\033[1;31m==>\033[0m %s\n" "$*" >&2; exit 1; }
 # --- 1. Prerequisites ------------------------------------------------------
 
 if ! command -v brew >/dev/null 2>&1; then
-	die "Homebrew is required. Install it from https://brew.sh first."
+	warn "Homebrew is not installed."
+	read -r -p "Install Homebrew now? (it will prompt for your sudo password) [y/N] " reply
+	if [[ ! "$reply" =~ ^[Yy]$ ]]; then
+		die "Aborting. Install Homebrew from https://brew.sh and re-run."
+	fi
+	log "Installing Homebrew..."
+	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+	# Add brew to PATH for the rest of this script (differs on Apple Silicon vs Intel).
+	if [[ -x /opt/homebrew/bin/brew ]]; then
+		eval "$(/opt/homebrew/bin/brew shellenv)"
+	elif [[ -x /usr/local/bin/brew ]]; then
+		eval "$(/usr/local/bin/brew shellenv)"
+	fi
+
+	if ! command -v brew >/dev/null 2>&1; then
+		die "Homebrew install finished but 'brew' still isn't on PATH. Open a new terminal and re-run."
+	fi
+	log "Homebrew installed. Note: you may need to add it to your shell profile — the installer prints the exact command."
 fi
 
 if ! command -v jq >/dev/null 2>&1; then

@@ -1,5 +1,5 @@
 {
-  "description": "Swap external displays via Hammerspoon (Right Cmd + \\)",
+  "description": "Swap external displays via Hammerspoon (Right Cmd + \\ / Cmd + Shift + \\)",
   "manipulators": [
     {
       "type": "basic",
@@ -10,6 +10,18 @@
       "to": [
         {
           "shell_command": "open -g 'hammerspoon://swapDisplays'"
+        }
+      ]
+    },
+    {
+      "type": "basic",
+      "from": {
+        "key_code": "backslash",
+        "modifiers": { "mandatory": ["command", "shift"] }
+      },
+      "to": [
+        {
+          "shell_command": "open -g 'hammerspoon://swapDisplaysBuiltInRight'"
         }
       ]
     }
